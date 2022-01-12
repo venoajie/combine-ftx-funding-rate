@@ -5,23 +5,22 @@ from functools import lru_cache
 from loguru import logger as log
 from unsync import unsync
 from dataclassy import dataclass
+import requests
 
 @dataclass(unsafe_hash=True, slots=True)
 class Funding_Data ():
            
     @lru_cache(maxsize=None)
-    def tarik_data_funding_per_koin (self, koin: str):
+    def fetch_funding_per_coin (self, coin: str):
 
         '''
-        # Menarik semua funding rate.
+        # Fetch next funding rate for each coin.
                     
-                Return and rtype: funding rate selected.
+                Return and rtype: next funding rate for selected coin
 
         '''   
         
-        import requests
-        
-        end_point_per_koin= (f' https://ftx.com/api/futures/{koin}/stats')
+        end_point_per_koin= (f' https://ftx.com/api/futures/{coin}/stats')
         
         try:
             funding_rates_per_koin=(requests.get(end_point_per_koin).json()) ['result']
@@ -34,51 +33,40 @@ class Funding_Data ():
         return funding_rates_per_koin
 
     @unsync
-    def kombinasi_data_funding (self, funding_rates_selected=None):
+    def combining_funding_rate (self):
 
         '''
-        # Membersihkan & menggabungkan funding rate.
+        # Combining current and next funding rate
                     
                 Return and rtype: funding rate.
 
         '''   
         
-        from dask import delayed, compute
-        
         funding_rates_all = self.tarik_data_funding_all()
-        #log.error(f"{funding_rates_selected}")
-        #log.error(f"{funding_rates_all}")
         
-        if funding_rates_selected != None:
-                
-            funding_rates_all = [ o for o in [o for o in funding_rates_all \
-                if o['future'] in funding_rates_selected  ]]
-            
-        fetch_dask = []
         try:
  
-            #mencari waktu funding terakhir (satu tarikan ada beberapa jam funding rates)
+            # obtain most recent funding time (there were some funding time contained in the endpoint result)
             funding_rates_fut_max_time = max( [ (o['time']) for o in [o for o in funding_rates_all  ]])
 
-            #seleksi koin berdasarkan funding rates terakhir 
+            # update coin funding rate based on the most recent funding time 
             funding_rates_fut_ =  [ o for o in [o for o in funding_rates_all \
                 if o['time'] == funding_rates_fut_max_time  ]]
-            funding_rates_fut =  [ o['future'] for o in [o for o in funding_rates_fut_  ]]
-            #log.error(f"{funding_rates_fut_=}")
             
+            # prepare symbol coins
+            symbols =  [ o['future'] for o in [o for o in funding_rates_fut_  ]]           
             
             data_funding =[]
-            for coin in funding_rates_fut:
+            for coin in symbols:
                 
-                funding_rates_next_= self.tarik_data_funding_per_koin(coin)  
+                funding_rates_next_= self.fetch_funding_per_coin(coin)  
                 funding_rates_next = funding_rates_next_['nextFundingRate']  
                 nextFundingTime = (funding_rates_next_['nextFundingTime']  )
                 currentFundingTime =  [ o['time'] for o in [o for o in funding_rates_fut_ \
                     if o['future'] == coin]][0]                
 
-                #log.error(f"{currentFundingTime=}")
-                dicttemp = {}
-                
+                # comhining current and next coins rate
+                dicttemp = {}                
                 dicttemp = {'future': coin ,
                             'nextRate': funding_rates_next,
                             'nextFundingTime': nextFundingTime,
@@ -91,7 +79,5 @@ class Funding_Data ():
             import traceback
             log.error(f"{error}")
             log.error(traceback.format_exc())
-            
-        results_dask = compute(*fetch_dask) 
-        
+                    
         return data_funding
