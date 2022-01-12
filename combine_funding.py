@@ -12,13 +12,12 @@ class Funding_Data ():
         '''
         # Fetch current funding rate for all coin.
                     
-                Return and rtype: next funding rate for selected coin
-
+            Return and rtype: current funding rate for all coin (list)
         '''   
         
-        end_point_all_coin= (f' https://ftx.com/api/funding_rates')
+        end_point= (f' https://ftx.com/api/funding_rates')
                         
-        return requests.get(end_point_all_coin).json() ['result']
+        return requests.get(end_point).json() ['result']
     
            
     def fetch_next_funding_rate (self, coin: str):
@@ -26,21 +25,19 @@ class Funding_Data ():
         '''
         # Fetch next funding rate for each coin.
                     
-                Return and rtype: next funding rate for selected coin
-
+            Return and rtype: next funding rate for selected coin (list)
         '''   
         
-        end_point_per_coin= (f' https://ftx.com/api/futures/{coin}/stats')
+        end_point= (f' https://ftx.com/api/futures/{coin}/stats')
             
-        return requests.get(end_point_per_coin).json() ['result']
+        return requests.get(end_point).json() ['result']
 
     def combining_funding_rate (self):
 
         '''
         # Combining current and next funding rate
                     
-                Return and rtype: funding rate.
-
+            Return and rtype: next and current funding rate for all coins (list).
         '''   
         
         # fetch current funding rate data
@@ -73,13 +70,11 @@ class Funding_Data ():
             dicttemp = {'future': coin ,
                         'nextRate': nextFundingRate,
                         'nextFundingTime': nextFundingTime,
-                        'time': currentFundingTime,
-                        }
+                        'time': currentFundingTime}
             
             data_funding_ = data_funding.append(dicttemp.copy())        
                     
         return data_funding
-
 
 def main():
     funding_data=Funding_Data()
