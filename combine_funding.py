@@ -4,66 +4,11 @@
 from functools import lru_cache
 from loguru import logger as log
 from unsync import unsync
-import data_statis as data
 from dataclassy import dataclass
 
 @dataclass(unsafe_hash=True, slots=True)
-class Data_Pasar ():
-            
-    @unsync
-    def tarik_tickers (self):
-
-        '''
-        # Menarik tickers untuk seluruh koin
-                Return and rtype:  tickers (list)
-        '''   
-                
-        import requests
-        end_point=(f' https://ftx.com/api/markets')
-
-        try:
-            tickers=(requests.get(end_point).json()) ['result']
-
-        except Exception as error:
-            import traceback
-            log.error(f"{error}")
-            log.error(traceback.format_exc())
-            
-        return tickers
-
-    @unsync
-    def detail_tickers(self, koin: str, tickers=None):
-                
-        '''
-        # Memecah informasi json ticker agar siap olah
-                Return and rtype: simbol, tipe, tick, bid, ask dst untuk setiap instrumen  dalam float
-                
-        '''   
-    @lru_cache(maxsize=None)
-    def tarik_data_funding_all (self):
-
-        '''
-        # Menarik semua funding rate.
-                    
-                Return and rtype: funding rate selected.
-
-        '''   
-        
-        import requests
-        
-        end_point_all=(f' https://ftx.com/api/funding_rates')
-        
-        try:
-            funding_rates_all=(requests.get(end_point_all).json()) ['result']
-                
-        except Exception as error:
-            import traceback
-            log.error(f"{error}")
-            log.error(traceback.format_exc())
-            
-        return funding_rates_all
-
-
+class Funding_Data ():
+           
     @lru_cache(maxsize=None)
     def tarik_data_funding_per_koin (self, koin: str):
 
