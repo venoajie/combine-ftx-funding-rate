@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from loguru import logger as log
 from dataclassy import dataclass
 import requests
 
@@ -24,6 +23,7 @@ class Funding_Data ():
                 
         except Exception as error:
             import traceback
+            from loguru import logger as log
             log.error(f"{error}")
             log.error(traceback.format_exc())
             
@@ -76,6 +76,7 @@ class Funding_Data ():
                                 
         except Exception as error:
             import traceback
+            from loguru import logger as log
             log.error(f"{error}")
             log.error(traceback.format_exc())
                     
